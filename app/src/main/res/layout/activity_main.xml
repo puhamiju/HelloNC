@@ -35,7 +35,7 @@
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:text="@string/lineage"
-            android:id="@+id/textView2"
+            android:id="@+id/gameTitle"
             android:textColor="#121212"
             />
 

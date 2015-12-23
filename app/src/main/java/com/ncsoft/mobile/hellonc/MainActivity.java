@@ -17,6 +17,7 @@ import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ncsoft.mobile.hellonc.adapter.IconTextListAdapter;
@@ -47,6 +48,7 @@ public class MainActivity extends Activity implements OnScrollListener {
     IconTextListAdapter adapter;
     RestTemplate restTemplate;
 
+    int GameIndex = 0;
     List<String> keywordList;
     int keywordIdx = 0;
     List<SearchItem> searchItemList = new ArrayList<SearchItem>();
@@ -64,8 +66,14 @@ public class MainActivity extends Activity implements OnScrollListener {
     public static String defaultUrl = "http://m.naver.com";
 
     Handler handler = new Handler();
-	String  keywordUrlStr[] = {"http://static.plaync.co.kr/search/popkwd/live_keyword_lineage1.js"};
-    String searchUrl[] = {"http://112.175.202.179/openapi/_searchgroup_json.jsp?query=%s&collection=lineage1,powerbook&site=lineage1&userip=127.0.0.1"};
+	String  keywordUrlStr[] = {"http://static.plaync.co.kr/search/popkwd/live_keyword_lineage1.js"
+                                , "http://static.plaync.co.kr/search/popkwd/live_keyword_lineage2.js"
+                                , "http://static.plaync.co.kr/search/popkwd/live_keyword_aion.js"
+                                };
+    String searchUrl[] = {"http://112.175.202.179/openapi/_searchgroup_json.jsp?query=%s&collection=lineage1,powerbook&site=lineage1&userip=127.0.0.1"
+                        , "http://112.175.202.179/openapi/_searchgroup_json.jsp?query=%s&collection=lineage2,powerbook&site=lineage2&userip=127.0.0.1"
+                        , "http://112.175.202.179/openapi/_searchgroup_json.jsp?query=%s&collection=aion,powerbook&site=aion&userip=127.0.0.1"
+                        };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,7 +128,7 @@ public class MainActivity extends Activity implements OnScrollListener {
         });
     }
 
-    public void refresh(View view) {
+    public void refresh() {
         Log.d(TAG, "refresh");
 
 //        adapter = new IconTextListAdapter(this);
@@ -186,9 +194,28 @@ public class MainActivity extends Activity implements OnScrollListener {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+
+        TextView gameTitle = (TextView) findViewById(R.id.gameTitle);
+
+        if (id == R.id.menuLineage) {
+            gameTitle.setText(R.string.lineage);
+            GameIndex = 0;
+            refresh();
+            return true;
+        } else if (id == R.id.menuLineage2) {
+            gameTitle.setText(R.string.lineage2);
+            GameIndex = 1;
+            refresh();
+
+            return true;
+        } else if (id == R.id.menuAion) {
+            gameTitle.setText(R.string.aion);
+            GameIndex = 2;
+            refresh();
+
             return true;
         }
+
 
         return super.onOptionsItemSelected(item);
     }
@@ -211,7 +238,8 @@ public class MainActivity extends Activity implements OnScrollListener {
 //            Log.d(TAG, "onScroll , keywordIdx:" + keywordIdx + " : " + keywordList.size());
 
             if(keywordList != null && keywordList.size() > 0 && keywordIdx < keywordList.size()) {
-                String[] urlStr = {String.format(searchUrl[0], keywordList.get(keywordIdx))};
+                String[] urlStr = new String[GameIndex+1];
+                urlStr[GameIndex] =  String.format(searchUrl[GameIndex], keywordList.get(keywordIdx));
                 keywordIdx ++;
 
                 new Search().execute(urlStr);
@@ -234,9 +262,9 @@ public class MainActivity extends Activity implements OnScrollListener {
 
 //            HttpURLConnection conn = null;
             try {
-                URL url = new URL(urls[0]);
+                URL url = new URL(urls[GameIndex]);
 
-                String keywordStr = restTemplate.getForObject(urls[0], String.class);
+                String keywordStr = restTemplate.getForObject(urls[GameIndex], String.class);
                 InputStream is = new ByteArrayInputStream(new String(keywordStr.getBytes("8859_1"), "utf-8").getBytes());
                 String keyword = "";
                 BufferedReader reader = new BufferedReader(new InputStreamReader(is)) ;
@@ -309,7 +337,10 @@ public class MainActivity extends Activity implements OnScrollListener {
 
             Log.d(TAG, "keyword onPostExecute");
             if(keywordList != null && keywordList.size() > 0) {
-                String[] urlStr = {String.format(searchUrl[0], keywordList.get(0))};
+//                String[] urlStr = {String.format(searchUrl[GameIndex], keywordList.get(0))};
+                String[] urlStr = new String[GameIndex+1];
+                urlStr[GameIndex] =  String.format(searchUrl[GameIndex], keywordList.get(keywordIdx));
+
                 keywordIdx ++;
 
                 new Search().execute(urlStr);
@@ -331,7 +362,7 @@ public class MainActivity extends Activity implements OnScrollListener {
         protected SearchSet[] doInBackground(String... urls) {
             SearchSet[] searchSetList = null;
             try {
-                String urlStr = urls[0];
+                String urlStr = urls[GameIndex];
 
 
                 // Make the HTTP GET request, marshaling the response to a String
