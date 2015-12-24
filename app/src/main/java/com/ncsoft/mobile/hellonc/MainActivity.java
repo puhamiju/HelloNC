@@ -1,10 +1,10 @@
 package com.ncsoft.mobile.hellonc;
 
 import android.app.Activity;
-import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,7 +18,6 @@ import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.ncsoft.mobile.hellonc.adapter.IconTextListAdapter;
 import com.ncsoft.mobile.hellonc.beans.SearchItem;
@@ -121,14 +120,17 @@ public class MainActivity extends Activity implements OnScrollListener {
                 IconTextItem curItem = (IconTextItem) adapter.getItem(position);
                 String[] curData = curItem.getData();
 
-                Toast.makeText(getApplicationContext(), "Selected : " + curData[0], Toast.LENGTH_LONG).show();
+                Intent myIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(curData[4]));
+                startActivity(myIntent);
+
+//                Toast.makeText(getApplicationContext(), "Selected : " + curData[0], Toast.LENGTH_LONG).show();
 
             }
 
         });
     }
 
-    public void refresh() {
+    public void refresh(View view) {
         Log.d(TAG, "refresh");
 
 //        adapter = new IconTextListAdapter(this);
@@ -143,11 +145,22 @@ public class MainActivity extends Activity implements OnScrollListener {
 
     }
 
-    public void openList(View view) {
-        Intent intent = new Intent(getApplicationContext(), ListActivity.class);
-        startActivity(intent);
+    public void reload() {
+        Log.d(TAG, "reload");
+
+//        adapter = new IconTextListAdapter(this);
+
+//        adapter.notifyDataSetChanged();
+        adapter.clearData();
+        keywordList.clear();
+        keywordIdx = 0;
+        adapter.notifyDataSetInvalidated();
+
+        new KeywordTask().execute(keywordUrlStr);
 
     }
+
+
 
     private void drawView (SearchSet[] searchSetList)  {
 
@@ -164,7 +177,7 @@ public class MainActivity extends Activity implements OnScrollListener {
             SearchItem searchItem= searchSet.getResultSet();
             for(int i = 0 ; i < searchCount; i++) {
                 String thumbnail = searchItem.getThumbnail()[i];
-                adapter.addItem(new IconTextItem(thumbnail, replaceHighlight(searchItem.getTitle()[i]),searchItem.getCategoryname()[i], searchItem.getDate()[i], replaceHighlight(searchItem.getContents()[i])));
+                adapter.addItem(new IconTextItem(thumbnail, replaceHighlight(searchItem.getTitle()[i]),searchItem.getCategoryname()[i], searchItem.getDate()[i], replaceHighlight(searchItem.getContents()[i]), searchItem.getUrl()[i] ));
             }
         }
         adapter.notifyDataSetChanged();
@@ -200,18 +213,18 @@ public class MainActivity extends Activity implements OnScrollListener {
         if (id == R.id.menuLineage) {
             gameTitle.setText(R.string.lineage);
             GameIndex = 0;
-            refresh();
+            reload();
             return true;
         } else if (id == R.id.menuLineage2) {
             gameTitle.setText(R.string.lineage2);
             GameIndex = 1;
-            refresh();
+            reload();
 
             return true;
         } else if (id == R.id.menuAion) {
             gameTitle.setText(R.string.aion);
             GameIndex = 2;
-            refresh();
+            reload();
 
             return true;
         }
@@ -229,21 +242,19 @@ public class MainActivity extends Activity implements OnScrollListener {
 
     @Override
     public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-
-
-
         int count = totalItemCount - visibleItemCount;
         if(firstVisibleItem >= count && totalItemCount !=0 && LockListView == false) {
 
 //            Log.d(TAG, "onScroll , keywordIdx:" + keywordIdx + " : " + keywordList.size());
 
             if(keywordList != null && keywordList.size() > 0 && keywordIdx < keywordList.size()) {
-                String[] urlStr = new String[GameIndex+1];
-                urlStr[GameIndex] =  String.format(searchUrl[GameIndex], keywordList.get(keywordIdx));
+
+                String[] urlStr =  {String.format(searchUrl[GameIndex], keywordList.get(keywordIdx))};
+                Log.d(TAG, " onScroll start new Search " + urlStr[0]);
                 keywordIdx ++;
 
                 new Search().execute(urlStr);
-//                Log.d(TAG, " onScroll start new Search " + urlStr[0]);
+//
             }
 
 
@@ -258,9 +269,6 @@ public class MainActivity extends Activity implements OnScrollListener {
         protected Void doInBackground(String... urls) {
             // 키워드 목록
 
-
-
-//            HttpURLConnection conn = null;
             try {
                 URL url = new URL(urls[GameIndex]);
 
@@ -279,51 +287,10 @@ public class MainActivity extends Activity implements OnScrollListener {
                         keywordList.add(keyword);
                         Log.d(TAG, "keyword :" + keyword);
                     }
-
-
                 }
-/*
-                conn = (HttpURLConnection)url.openConnection();
-                if (conn != null) {
-                    conn.setConnectTimeout(10000);
-                    conn.setRequestMethod("GET");
-                    conn.setDoInput(false);
-                    conn.setDoOutput(true);
-
-
-                    int resCode = conn.getResponseCode();
-                    Log.d(TAG, "resCode : " + resCode);
-                    if (resCode == HttpURLConnection.HTTP_OK) {
-                        String keyword = "";
-
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream())) ;
-                        String line = null;
-                        while(true) {
-                            line = reader.readLine();
-                            if (line == null) {
-                                break;
-                            }
-                            if(line.startsWith("live_keywords.add")) {
-                                keyword = line.substring(line.indexOf("'")+1, line.indexOf("'", line.indexOf("'")+1));
-                                keywordList.add(keyword);
-                            }
-
-                            Log.d(TAG, "keyword :" +keyword );
-                        }
-
-                        reader.close();
-
-                    }
-
-                }
- */
             } catch(Exception e) {
                 e.getStackTrace();
                 Log.e(TAG, "passing error " + e.getMessage());
-            } finally {
-                //if (conn != null) {
-                //   conn.disconnect();
-//                }
             }
 
             for(int i = 0; i < keywordList.size(); i ++)
@@ -337,32 +304,24 @@ public class MainActivity extends Activity implements OnScrollListener {
 
             Log.d(TAG, "keyword onPostExecute");
             if(keywordList != null && keywordList.size() > 0) {
-//                String[] urlStr = {String.format(searchUrl[GameIndex], keywordList.get(0))};
-                String[] urlStr = new String[GameIndex+1];
-                urlStr[GameIndex] =  String.format(searchUrl[GameIndex], keywordList.get(keywordIdx));
-
+                String[] urlStr =  {String.format(searchUrl[GameIndex], keywordList.get(keywordIdx))};
                 keywordIdx ++;
 
                 new Search().execute(urlStr);
                 Log.d(TAG, "start new Search ");
             }
         }
-
-
-
     }
 
     /**
      *
      */
     private class Search extends AsyncTask<String, Void, SearchSet[]>{
-
-
         @Override
         protected SearchSet[] doInBackground(String... urls) {
             SearchSet[] searchSetList = null;
             try {
-                String urlStr = urls[GameIndex];
+                String urlStr = urls[0];
 
 
                 // Make the HTTP GET request, marshaling the response to a String
@@ -388,20 +347,6 @@ public class MainActivity extends Activity implements OnScrollListener {
             drawView(searchSetList);
         }
     }
-
-//    @Override
-//    protected void onPostExecute(Long result) {
-//
-////       Log.d(TAG, "onPostExcute" + searchSetList.length);
-////       Log.d(TAG, searchSetList.size()+"");
-//         Log.d(TAG, result+"");
-//
-////        for( SearchSet searchSet : searchSetList ) {
-////            Log.d(TAG, Arrays.toString(searchSet.getResultSet().getTitle()));
-////        }
-//    }
-
-
 }
 
 

@@ -39,6 +39,8 @@ public class IconTextView extends LinearLayout{
      */
     private TextView mText04;
 
+    private String url;
+
     public IconTextView(Context context, IconTextItem aItem) {
         super(context);
 
@@ -74,8 +76,10 @@ public class IconTextView extends LinearLayout{
             mText02.setText(data);
         } else if (index == 2) {
             mText03.setText(data);
-        }  else if (index == 3) {
+        } else if (index == 3) {
             mText04.setText(data);
+        } else if (index == 4) {
+           url = data;
         } else {
             throw new IllegalArgumentException();
         }

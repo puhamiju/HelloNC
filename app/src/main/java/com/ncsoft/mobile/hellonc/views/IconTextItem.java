@@ -18,14 +18,15 @@ public class IconTextItem {
         mData = obj;
     }
 
-    public IconTextItem (String icon, String obj01, String obj02, String obj03, String obj04) {
+    public IconTextItem (String icon, String obj01, String obj02, String obj03, String obj04, String obj05) {
         mIcon = icon;
 
-        mData = new String[4];
+        mData = new String[5];
         mData[0] = obj01;
         mData[1] = obj02;
         mData[2] = obj03;
         mData[3] = obj04;
+        mData[4] = obj05;
 
     }
 

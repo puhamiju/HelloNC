@@ -73,7 +73,7 @@ public class SearchTask extends AsyncTask<String, Void, SearchSet[]> {
                 SearchItem searchItem = searchSet.getResultSet();
                 for (int i = 0; i < searchCount; i++) {
                     String thumbnail = searchItem.getThumbnail()[i];
-                    adapter.addItem(new IconTextItem(thumbnail, searchItem.getTitle()[i], searchItem.getCategoryname()[i], searchItem.getContents()[i], searchItem.getDate()[i]));
+                    adapter.addItem(new IconTextItem(thumbnail, searchItem.getTitle()[i],searchItem.getCategoryname()[i], searchItem.getDate()[i], searchItem.getContents()[i], searchItem.getUrl()[i] ));
                 }
             }
 
