@@ -1,7 +1,6 @@
 package com.ncsoft.mobile.hellonc;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.net.Uri;
@@ -50,19 +49,15 @@ public class MainActivity extends Activity implements OnScrollListener {
     int GameIndex = 0;
     List<String> keywordList;
     int keywordIdx = 0;
+    String updateDate;
+
     List<SearchItem> searchItemList = new ArrayList<SearchItem>();
 
     boolean LockListView;
 
     private LayoutInflater mInflater;
 
-    String tagName = "";
-    String title = "";
-    String content = "";
-    List<String> titleList = new ArrayList<String>();
-    List<String> contentList = new ArrayList<String>();
 
-    public static String defaultUrl = "http://m.naver.com";
 
     Handler handler = new Handler();
 	String  keywordUrlStr[] = {"http://static.plaync.co.kr/search/popkwd/live_keyword_lineage1.js"
@@ -88,7 +83,7 @@ public class MainActivity extends Activity implements OnScrollListener {
         adapter = new IconTextListAdapter(this);
         // 아이템 데이터 만들기
         Resources res = getResources();
-        
+        updateDate = "";
 
 
 
@@ -104,7 +99,7 @@ public class MainActivity extends Activity implements OnScrollListener {
 
 
 
-        mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+//        mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
 //        listView1.addFooterView(mInflater.inflate(R.layout.footer, null));
 
@@ -282,6 +277,12 @@ public class MainActivity extends Activity implements OnScrollListener {
                     if (line == null) {
                         break;
                     }
+
+                    if(line.startsWith("var last_modify")) {
+                        updateDate = line.substring(line.indexOf("'")+1, line.indexOf("'", line.indexOf("'")+1));
+                        Log.d(TAG, "updateDate :" + updateDate);
+                    }
+
                     if(line.startsWith("live_keywords.add")) {
                         keyword = line.substring(line.indexOf("'")+1, line.indexOf("'", line.indexOf("'")+1));
                         keywordList.add(keyword);
@@ -304,6 +305,9 @@ public class MainActivity extends Activity implements OnScrollListener {
 
             Log.d(TAG, "keyword onPostExecute");
             if(keywordList != null && keywordList.size() > 0) {
+                TextView updateDateTxt = (TextView) findViewById(R.id.updateDate);
+                updateDateTxt.setText(updateDate);
+
                 String[] urlStr =  {String.format(searchUrl[GameIndex], keywordList.get(keywordIdx))};
                 keywordIdx ++;
 

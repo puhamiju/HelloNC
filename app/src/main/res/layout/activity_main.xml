@@ -38,6 +38,23 @@
             android:id="@+id/gameTitle"
             android:textColor="#121212"
             />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/updateTitle"
+            android:text="@string/update_title"
+            android:textSize="9dp"
+            android:textColor="#707070"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/updateDate"
+            android:textSize="9dp"
+            android:textColor="#707070"
+            />
 
         <ImageView
             android:layout_height="24dp"
